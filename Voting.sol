@@ -32,8 +32,9 @@ contract Voting is Ownable {
     WorkflowStatus workflowStatus;
     mapping (address=>Voter) private whitelist;
     Proposal[] public proposals;
-    Counters.Counter private proposalsCounter;
+    address[] private addressForMapping;
     Counters.Counter private whitelistCounter;
+    Counters.Counter private proposalsCounter;
 
 
     event VoterRegistered(address voterAddress);
@@ -53,6 +54,7 @@ contract Voting is Ownable {
         voter.hasVoted = false;
         whitelist[_address] = voter;
         whitelistCounter.increment();
+        addressForMapping.push(_address);
     }
 
     function registerProposal(string memory _description) public isWhitelisted {
@@ -121,18 +123,23 @@ contract Voting is Ownable {
         setWinner();
         return getWinner();
     }
-    /*
+
     function reset() public onlyOwner {
         workflowStatus = WorkflowStatus.RegisteringVoters;
         delete winningProposalId;
         delete proposalsCounter;
-        whitelistCounter;
+        delete whitelistCounter;
 
         while(proposals.length > 0) {
             proposals.pop();
         }
+
+        for(uint256 i = 0; i < addressForMapping.length; i++) {
+            address current = addressForMapping[i];
+            delete whitelist[current];
+            delete addressForMapping[i];
+        }
     }
-    */
 
     modifier isWhitelisted() {
         require(whitelist[msg.sender].isRegistered, "You are not whitelisted");
